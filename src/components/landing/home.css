@@ -1,0 +1,90 @@
+.custom-image {
+  width: 30%;
+  height: auto !important;
+  max-width: 100px; /* Adjust the max-width value as needed */
+}
+  
+@media (max-width: 768px) {
+  .custom-image {
+    width: 80%;
+    height: 40px !important;
+  }
+}
+
+.font-color {
+  color: hsl(24.38, 100%, 93.73%) !important;
+}
+
+.parent-div {
+  margin: 20px;
+  text-align: center;
+  border: 1px solid hsl(24.38, 100%, 93.73%);
+  border-radius: 10px;
+  padding: 20px;
+}
+
+.form-fields {
+  margin-bottom: 10px;
+}
+
+#landing{
+  color: wheat !important;
+}
+
+.form-group {
+  margin-bottom: 10px;
+}
+
+.custom-table {
+  background-color: hsl(204.38, 100%, 6.27%) !important;
+  color: hsl(24.38, 100%, 93.73%) !important;
+  table-layout: fixed;
+  border: 1px solid hsl(24.38, 100%, 93.73%);
+  border-radius: 10px;
+}
+
+.custom-table th,
+.custom-table td {
+  text-align: center;
+  vertical-align: middle;
+  padding: 8px; /* Adjust the padding value as needed */
+}
+
+.custom-table th:nth-child(5),
+.custom-table td:nth-child(5) {
+  width: 20%;
+}
+
+.select {
+  margin-right: 10px;
+}
+
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 10px;
+}
+
+.page-number {
+  margin: 0 10px;
+}
+
+.pagination .btn.active {
+  background-color: rgb(0,19,32) !important;
+  color: #fff;
+}
+
+.currentPageInfo {
+  margin-left: 100px;;
+}
+
+
+
+.pagination .btn {
+  margin-right: 5px;
+}
+
+.pageNumber {
+  background-color: transparent !important;
+}

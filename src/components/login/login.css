@@ -1,0 +1,31 @@
+.form-group {
+    margin-bottom: 1rem; /* Adds space between form fields */
+  }
+
+.form-group label {
+display: block;
+text-align: left;
+margin-bottom: 0.5rem;
+}
+
+.form-group input {
+width: 100%;
+}
+
+  
+.form-control {
+width: 300px; /* Increases the width of the form fields */
+}
+
+.container form {
+    background: none; /* Remove the background on the form */
+}
+
+.container {
+    color: hsl(24.38, 100%, 93.73%); /* Set the contrast font color */
+}
+
+
+
+
+

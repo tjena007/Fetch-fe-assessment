@@ -17,6 +17,11 @@ export const LoginForm = ({ setAuthenticated }: LoginProps) => {
 
     async function login(name: any, email: any) {
         try {
+            // Check if the name is valid
+            if (!/^[a-zA-Z]/.test(name)) {
+                alert('Name should start with an alphabet.');
+                return;
+            }
           // POST request to login endpoint  
           const response = await axios.post('https://frontend-take-home-service.fetch.com/auth/login', {
             name,
@@ -40,11 +45,11 @@ return (
     <form onSubmit={handleSubmit} className="text-center">
       <div className="form-group">
         <label htmlFor="name">Name</label>
-        <input type="text" id="name" name="name" className="form-control" placeholder="Name" />
+        <input type="text" id="name" name="name" className="form-control" placeholder="Name" required />
       </div>
       <div className="form-group">
         <label htmlFor="email">Email</label>
-        <input type="email" id="email" name="email" className="form-control" placeholder="Email" />
+        <input type="email" id="email" name="email" className="form-control" placeholder="Email" required />
       </div>
       <div className="form-group">
         <span className="form-text text-muted">

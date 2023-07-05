@@ -36,7 +36,7 @@ export const DogInfo = () => {
             }
             const response = await axios.post('https://frontend-take-home-service.fetch.com/dogs',id,config); 
             const dogData = response.data; // Assuming the response data is in the expected format
-            setDogDetails(dogData[0]); // Update the state with the dog details
+            setDogDetails(dogData[0]);
           } catch (error) {
             console.error(error);
           }

@@ -1,7 +1,7 @@
 .custom-image {
   width: 20%;
   height: auto !important;
-  max-width: 100px; /* Adjust the max-width value as needed */
+  max-width: 100px;
 }
   
 @media (max-width: 768px) {
@@ -47,7 +47,7 @@
 .custom-table td {
   text-align: center;
   vertical-align: middle;
-  padding: 8px; /* Adjust the padding value as needed */
+  padding: 8px; 
 }
 
 .custom-table th:nth-child(5),

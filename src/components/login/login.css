@@ -1,5 +1,5 @@
 .form-group {
-    margin-bottom: 1rem; /* Adds space between form fields */
+    margin-bottom: 1rem;
   }
 
 .form-group label {
@@ -14,15 +14,15 @@ width: 100%;
 
   
 .form-control {
-width: 300px; /* Increases the width of the form fields */
+width: 300px; 
 }
 
 .container form {
-    background: none; /* Remove the background on the form */
+    background: none; 
 }
 
 .container {
-    color: hsl(24.38, 100%, 93.73%); /* Set the contrast font color */
+    color: hsl(24.38, 100%, 93.73%); 
 }
 
 .logo-image {

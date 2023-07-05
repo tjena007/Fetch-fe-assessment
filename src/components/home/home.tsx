@@ -1,10 +1,11 @@
 import axios, { AxiosRequestConfig } from 'axios';
-import React, { Component,useContext,useEffect,useState } from'react';
+import React, { useContext,useEffect,useState } from'react';
 import './home.css';
 import { Link } from 'react-router-dom';
 import { Button } from 'react-bootstrap';
 import {AppContext} from '../../App';
 
+// Interfaces for the Dropdown component props, Dog object, and DogTabble component props
 interface DropdownProps {
     options: string[];
     onSelect: (selectedOptions: string[]) => void;
@@ -23,12 +24,6 @@ interface DogTableProps {
     dogs: Record<string, Dog>;
 }
 
-interface AppContextProps {
-    config: AxiosRequestConfig;
-    currentPage: number;
-    currentURL: string;
-}
-
 const Dropdown: React.FC<DropdownProps> = ({ options, onSelect }) => {
     const [selectedOptions, setSelectedOptions] = useState<string[]>([]);
   
@@ -37,7 +32,7 @@ const Dropdown: React.FC<DropdownProps> = ({ options, onSelect }) => {
         ? selectedOptions.filter((selectedOption) => selectedOption !== option)
         : [...selectedOptions, option];
   
-      setSelectedOptions(updatedOptions);
+      setSelectedOptions(updatedOptions); //updates the selectedOptions state
       onSelect(updatedOptions);
     };
   
@@ -62,52 +57,51 @@ const Dropdown: React.FC<DropdownProps> = ({ options, onSelect }) => {
   };
 
 const DogTable: React.FC<DogTableProps> = ({ dogs }) => {
-    //console.log(dogs);
-
-    return (
-        <div className="table-responsive">
-          {Object.keys(dogs).length === 0 ? (
-            <p className='font-color'>No results found.</p>
-          ) : (
-            <table className="text-center custom-table mx-md-4">
-              <thead>
-                <tr>
-                  <th>Name</th>
-                  <th>Age</th>
-                  <th>Breed</th>
-                  <th>Zipcode</th>
-                  <th>Image</th>
+  return (
+      <div className="table-responsive">
+        {Object.keys(dogs).length === 0 ? (
+          <p className='font-color'>No results found.</p>
+        ) : (
+          <table className="text-center custom-table mx-md-4">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Age</th>
+                <th>Breed</th>
+                <th>Zipcode</th>
+                <th>Image</th>
+              </tr>
+            </thead>
+            <tbody>
+              {Object.entries(dogs).map(([id, values]) => (
+                <tr key={id}>
+                  <td className="align-middle">
+                    <Link to={`/doginfo?id=${values.id}`} state={dogs} className="row-link">
+                      {values.name}
+                    </Link>
+                  </td>
+                  <td className="align-middle">{values.age}</td>
+                  <td className="align-middle">{values.breed}</td>
+                  <td className="align-middle">{values.zip_code}</td>
+                  <td className="align-middle">
+                    <img className="img-thumbnail custom-image" src={values.img} alt={values.name} />
+                  </td>
                 </tr>
-              </thead>
-              <tbody>
-                {Object.entries(dogs).map(([id, values]) => (
-                  <tr key={id}>
-                    <td className="align-middle">
-                      <Link to={`/doginfo?id=${values.id}`} state={dogs} className="row-link">
-                        {values.name}
-                      </Link>
-                    </td>
-                    <td className="align-middle">{values.age}</td>
-                    <td className="align-middle">{values.breed}</td>
-                    <td className="align-middle">{values.zip_code}</td>
-                    <td className="align-middle">
-                      <img className="img-thumbnail custom-image" src={values.img} alt={values.name} />
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          )}
-        </div>
-      );
-       
+              ))}
+            </tbody>
+          </table>
+        )}
+      </div>
+  );   
 }
   
 export const Home = () => {
-
+    // Retrieve the app context from the AppContext provider
     const appContext = useContext(AppContext);
 
     const baseUrl = 'https://frontend-take-home-service.fetch.com';
+
+    // State variables for dog IDs, dogs data, previous IDs, next IDs, total pages, breeds, and sort options
     const [dogIDs, setDogIDs] = useState([]);
     const [dogs, setDogs] = useState<{
         [key:string]: {age:number; breed:string; id:string;img:string;name:string;zip_code:string};
@@ -115,188 +109,162 @@ export const Home = () => {
     const [prevIDs,setprevIDs] = useState('');
     const [nextIDs,setnextIDs] = useState('');
     const [totalPages,settotalPages] = useState(0);
-    const [reloadKey, setReloadKey] = useState(0);
     const [breeds, setBreeds] = useState([]);
     const [sort, setSort] = useState<{ option: string; order: string }>({ option: 'breed', order: 'asc' });
-    // const [currentURL,setcurrentURL] = useState('');
-    // const [currentPage, setCurrentPage] = useState(1);
+   
+    // Axios configuration object for making API requests
     const config: AxiosRequestConfig = {
         params: {},
         withCredentials: true,
     };
 
-
+    // Retrieve current URL and current page from app context
     const { currentURL,currentPage,updateContext } = useContext(AppContext);
 
-    
-    // const sortParams = "breed:asc";
-
-    //update code to check what params are passed and add them to params object
-    
-
+    // Function to fetch the list of dog breeds
     const getBreeds = async () => {
-        try {
-            const response = await axios.get(`${baseUrl}/dogs/breeds`, { withCredentials: true });
-            // console.log(response.data); // Handle the response data
-            setBreeds(response.data);   
-        } catch (error) {
-            console.error(error);
-        }
+      try {
+          const response = await axios.get(`${baseUrl}/dogs/breeds`, { withCredentials: true });
+          setBreeds(response.data);   
+      } catch (error) {
+          console.error(error);
+      }
     };
 
+    // Function to fetch the list of dog IDs
     const getDogIDs = async () => {
-        try {
-        // console.log(`${sort.option}:${sort.order}`);
-        config.params.sort = `${sort.option}:${sort.order}`;
+      try {
+      config.params.sort = `${sort.option}:${sort.order}`;
 
-        //   console.log(config);
-         //get data frpm context to pass to API
-          let response;
+      let response;
 
-        //   console.log(currentURL);
-
-          if(currentURL.length > 0){
-            response = await axios.get(`${currentURL}`, { withCredentials: true });
-            // console.log(response.data);
-          }
-          else{
-            response = await axios.get(`${baseUrl}/dogs/search`, config);
-          }
-         
-
-          
-          //const response = await axios.get(`${baseUrl}/dogs/search`, config);
-          const resultIds = response?.data?.resultIds || [];
-          const next = response?.data?.next;
-          const prev = response?.data?.prev;
-          const total = response?.data?.total;
+      //Based on where the method is called from, determine which URL to use
+      if(currentURL.length > 0){
+        response = await axios.get(`${currentURL}`, { withCredentials: true });
+      }
+      else{
+        response = await axios.get(`${baseUrl}/dogs/search`, config);
+      }
       
-        //   console.log(response.data); // Handle the response data
-          setDogIDs(resultIds);
-          setnextIDs(next);
-          setprevIDs(prev);
-          settotalPages(Math.ceil(total/25));
+      // Extract the resultIds, next, prev, and total values from the response data.
+      const resultIds = response?.data?.resultIds || [];
+      const next = response?.data?.next;
+      const prev = response?.data?.prev;
+      const total = response?.data?.total;
+  
+      // Update the state with the fetched resultIds, next, prev, and totalPages (calculated from total).
+      setDogIDs(resultIds);
+      setnextIDs(next);
+      setprevIDs(prev);
+      settotalPages(Math.ceil(total/25));
 
-          if(resultIds.length === 0){
-            setDogs({});
-            updateContext({currentPage : 0});
-          }
-      
-          return resultIds;
-        } catch (error) {
-          console.error(error);
-          throw error; // Re-throw the error to be handled externally
-        }
-      };
-      
-      const getDogInfo = async (resultIds: string[]) => {
-        try {
-        //   console.log(resultIds);
-          const response = await axios.post(`${baseUrl}/dogs`, resultIds, { withCredentials: true });
-        //   console.log(response.data);
-          setDogs((prevDogs) => ({ ...prevDogs, ...response.data }));
-        } catch (error) {
-          console.error(error);
-        }
-      };
-      
-      useEffect(() => {
-        const fetchData = async () => {
-          try {
-            const resultIds = await getDogIDs();
-            if (resultIds.length > 0) {
-              await getDogInfo(resultIds);
-            }
-            await getBreeds();
-          } catch (error) {
-            console.error(error);
-          }
-        };
-      
-        fetchData();
-      }, []);
-      
-      
-
-    const getPrevDogIDs = async () => {
-        try {
-            updateContext({currentURL: `${baseUrl}${prevIDs}`});
-            const response = await axios.get(`${baseUrl}${prevIDs}`, { withCredentials: true });
-
-            if(response.data.next!= undefined) {
-                setnextIDs(response.data.next);
-            }
-            else{
-                setnextIDs('');
-            }
-
-            if (response.data.prev != undefined) {
-                // console.log(response.data.prev);
-                setprevIDs(response.data.prev);
-            }
-            else{
-                setprevIDs('');
-            }
-
-            setDogIDs(response.data.resultIds);
-            await getDogInfo(response.data.resultIds);
-            //handleReload();
-
-            // setCurrentPage(currentPage - 1);
-            updateContext({currentPage: currentPage - 1});
-        
-            
-        } catch (error) {
-            
-        }
+       // If no resultIds were fetched, reset the dogs state to an empty object and update currentPage in the context to 0.
+      if(resultIds.length === 0){
+        setDogs({});
+        updateContext({currentPage : 0});
+      }
+  
+      return resultIds;
+      } catch (error) {
+        console.error(error);
+      }
     };
-
-    const getNextDogIDs  = async () => {
-        try {
-            // console.log(nextIDs);
-            // console.log(`${baseUrl}${nextIDs}`);
-            // setcurrentURL(`${baseUrl}${nextIDs}`);
-            updateContext({currentURL: `${baseUrl}${nextIDs}`});
-            const response = await axios.get(`${baseUrl}${nextIDs}`, { withCredentials: true });
-            // console.log(response.data);
-
-            if(response.data.next!= undefined) {
-                setnextIDs(response.data.next);
-            }
-            else{
-                setnextIDs('');
-            }
-
-            if (response.data.prev != undefined) {
-                // console.log(response.data.prev);
-                setprevIDs(response.data.prev);
-            }
-            else{
-                setprevIDs('');
-            }
-
-            setDogIDs(response.data.resultIds);
-            //console.log(response.data.resultIds);
-            await getDogInfo(response.data.resultIds);
-
-            // handleReload();
-
-            // setCurrentPage(currentPage + 1);
-            updateContext({currentPage: currentPage + 1});
-        
-            
-        } catch (error) {
-            
-        }
-    };
-
     
+    // Function to fetch information about dogs based on their IDs.
+    const getDogInfo = async (resultIds: string[]) => {
+      try {  
+        const response = await axios.post(`${baseUrl}/dogs`, resultIds, { withCredentials: true });
+      
+        setDogs((prevDogs) => ({ ...prevDogs, ...response.data }));
+      } catch (error) {
+        console.error(error);
+      }
+    };
+     
+    // This useEffect hook runs once when the component is mounted.
+    useEffect(() => {
+      const fetchData = async () => {
+        try {
+          const resultIds = await getDogIDs();
+          if (resultIds.length > 0) {
+            await getDogInfo(resultIds);
+          }
+          await getBreeds();
+        } catch (error) {
+          console.error(error);
+        }
+      };
+    
+      fetchData();
+    }, []);
+    
+    // This function is responsible for fetching the previous set of dog IDs.
+    const getPrevDogIDs = async () => {
+      try {
+        updateContext({currentURL: `${baseUrl}${prevIDs}`});
+        const response = await axios.get(`${baseUrl}${prevIDs}`, { withCredentials: true });
 
+        // Update the nextIDs and prevIDs in the state based on the response data.
+        // If next is defined, set nextIDs to it; otherwise, set it to an empty string.
+        if(response.data.next!= undefined) {
+            setnextIDs(response.data.next);
+        }
+        else{
+            setnextIDs('');
+        }
+
+        if (response.data.prev != undefined) {
+            setprevIDs(response.data.prev);
+        }
+        else{
+            setprevIDs('');
+        }
+
+        setDogIDs(response.data.resultIds);
+        await getDogInfo(response.data.resultIds);
+        updateContext({currentPage: currentPage - 1});
+      } catch (error) {
+        console.error(error);
+      }
+    };
+
+
+    // This function is responsible for fetching the next set of dog IDs.
+    const getNextDogIDs  = async () => {
+      try { 
+        updateContext({currentURL: `${baseUrl}${nextIDs}`});
+        const response = await axios.get(`${baseUrl}${nextIDs}`, { withCredentials: true });
+
+        if(response.data.next!= undefined) {
+            setnextIDs(response.data.next);
+        }
+        else{
+            setnextIDs('');
+        }
+
+        if (response.data.prev != undefined) {
+            setprevIDs(response.data.prev);
+        }
+        else{
+            setprevIDs('');
+        }
+
+        setDogIDs(response.data.resultIds);
+        await getDogInfo(response.data.resultIds);
+
+        updateContext({currentPage: currentPage + 1});          
+      } catch (error) {
+          console.error(error);
+      }
+    };
+
+    // This component handles the creation and submission of filters.
     const CreateFilters = () => {
         const [selectedBreeds, setSelectedBreeds] = useState<string[]>([]);
         const [ageMin, setAgeMin] = useState<number>(0);
         const [ageMax, setAgeMax] = useState<number>(0);
 
+        // Handlers for updating the selected breeds, ageMin, and ageMax states.
         const handleBreedsSelect = (selectedBreeds: string[]) => {
             setSelectedBreeds(selectedBreeds);
         };
@@ -317,11 +285,12 @@ export const Home = () => {
             setSort({ ...sort, order: e.target.value });
         };
         
-        
+        // Handler for form submission.
         const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
             try {
               e.preventDefault();
-          
+              
+              //update the config object with the new values
               if (selectedBreeds && selectedBreeds.length > 0) {
                 config.params.breeds = selectedBreeds;
               }
@@ -339,26 +308,23 @@ export const Home = () => {
               updateContext({currentPage: 1});
 
               console.log(config);
-          
+              
+              // Fetch the list of new dog IDs
               const resultIds = await getDogIDs();
               if (resultIds.length > 0) {
-                await getDogInfo(resultIds);
+                await getDogInfo(resultIds); //Get the new dogs list
               }
             
+              // Resest the form
               setSelectedBreeds([]);
               setAgeMin(0);
               setAgeMax(0);
-            //   setCurrentPage(1);
               setSort({ option: 'breed', order: 'asc' });
-            //   window.location.reload();
-            //   handleReload();
-              //console.log("Successfully Applied");
             } catch (error) {
               console.error(error); // Handle error cases
             }
         };
           
-
         return (
             <div className="parent-div">
               <h4 className="font-color">Apply filters</h4>
@@ -409,7 +375,7 @@ export const Home = () => {
           );
           
     };
-    //create pagination component
+
     return (
         <div className="mt-4">
             <h1 className="text-center font-color" id='landing'>Landing Page</h1>
@@ -436,6 +402,5 @@ export const Home = () => {
                 Showing {currentPage} / {totalPages}
             </p>
         </div>
-    );
-      
+    );  
 };

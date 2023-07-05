@@ -25,6 +25,12 @@ width: 300px; /* Increases the width of the form fields */
     color: hsl(24.38, 100%, 93.73%); /* Set the contrast font color */
 }
 
+.logo-image {
+    max-width: 100px !important;
+    height: 70px !important;
+}
+
+
 
 
 

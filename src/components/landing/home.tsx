@@ -1,8 +1,9 @@
 import axios, { AxiosRequestConfig } from 'axios';
-import React, { Component,useEffect,useState } from'react';
+import React, { Component,useContext,useEffect,useState } from'react';
 import './home.css';
 import { Link } from 'react-router-dom';
 import { Button } from 'react-bootstrap';
+import {AppContext} from '../../App';
 
 interface DropdownProps {
     options: string[];
@@ -21,7 +22,12 @@ interface Dog {
 interface DogTableProps {
     dogs: Record<string, Dog>;
 }
-  
+
+interface AppContextProps {
+    config: AxiosRequestConfig;
+    currentPage: number;
+    currentURL: string;
+}
 
 const Dropdown: React.FC<DropdownProps> = ({ options, onSelect }) => {
     const [selectedOptions, setSelectedOptions] = useState<string[]>([]);
@@ -99,6 +105,8 @@ const DogTable: React.FC<DogTableProps> = ({ dogs }) => {
   
 export const Home = () => {
 
+    const appContext = useContext(AppContext);
+
     const baseUrl = 'https://frontend-take-home-service.fetch.com';
     const [dogIDs, setDogIDs] = useState([]);
     const [dogs, setDogs] = useState<{
@@ -109,19 +117,22 @@ export const Home = () => {
     const [totalPages,settotalPages] = useState(0);
     const [reloadKey, setReloadKey] = useState(0);
     const [breeds, setBreeds] = useState([]);
-    const [currentPage, setCurrentPage] = useState(1);
     const [sort, setSort] = useState<{ option: string; order: string }>({ option: 'breed', order: 'asc' });
-
-    
-    // const sortParams = "breed:asc";
-
-    //update code to check what params are passed and add them to params object
+    // const [currentURL,setcurrentURL] = useState('');
+    // const [currentPage, setCurrentPage] = useState(1);
     const config: AxiosRequestConfig = {
         params: {},
         withCredentials: true,
     };
 
-    config.params.sort = `${sort.option}:${sort.order}`;
+
+    const { currentURL,currentPage,updateContext } = useContext(AppContext);
+
+    
+    // const sortParams = "breed:asc";
+
+    //update code to check what params are passed and add them to params object
+    
 
     const getBreeds = async () => {
         try {
@@ -135,14 +146,32 @@ export const Home = () => {
 
     const getDogIDs = async () => {
         try {
-        console.log(config);
-          const response = await axios.get(`${baseUrl}/dogs/search`, config);
+        // console.log(`${sort.option}:${sort.order}`);
+        config.params.sort = `${sort.option}:${sort.order}`;
+
+        //   console.log(config);
+         //get data frpm context to pass to API
+          let response;
+
+        //   console.log(currentURL);
+
+          if(currentURL.length > 0){
+            response = await axios.get(`${currentURL}`, { withCredentials: true });
+            // console.log(response.data);
+          }
+          else{
+            response = await axios.get(`${baseUrl}/dogs/search`, config);
+          }
+         
+
+          
+          //const response = await axios.get(`${baseUrl}/dogs/search`, config);
           const resultIds = response?.data?.resultIds || [];
           const next = response?.data?.next;
           const prev = response?.data?.prev;
           const total = response?.data?.total;
       
-            console.log(response.data); // Handle the response data
+        //   console.log(response.data); // Handle the response data
           setDogIDs(resultIds);
           setnextIDs(next);
           setprevIDs(prev);
@@ -150,9 +179,10 @@ export const Home = () => {
 
           if(resultIds.length === 0){
             setDogs({});
+            updateContext({currentPage : 0});
           }
       
-          return resultIds; // Return the resultIds
+          return resultIds;
         } catch (error) {
           console.error(error);
           throw error; // Re-throw the error to be handled externally
@@ -190,7 +220,7 @@ export const Home = () => {
 
     const getPrevDogIDs = async () => {
         try {
-           
+            updateContext({currentURL: `${baseUrl}${prevIDs}`});
             const response = await axios.get(`${baseUrl}${prevIDs}`, { withCredentials: true });
 
             if(response.data.next!= undefined) {
@@ -212,7 +242,8 @@ export const Home = () => {
             await getDogInfo(response.data.resultIds);
             //handleReload();
 
-            setCurrentPage(currentPage - 1);
+            // setCurrentPage(currentPage - 1);
+            updateContext({currentPage: currentPage - 1});
         
             
         } catch (error) {
@@ -223,8 +254,11 @@ export const Home = () => {
     const getNextDogIDs  = async () => {
         try {
             // console.log(nextIDs);
-            console.log(`${baseUrl}${nextIDs}`);
+            // console.log(`${baseUrl}${nextIDs}`);
+            // setcurrentURL(`${baseUrl}${nextIDs}`);
+            updateContext({currentURL: `${baseUrl}${nextIDs}`});
             const response = await axios.get(`${baseUrl}${nextIDs}`, { withCredentials: true });
+            // console.log(response.data);
 
             if(response.data.next!= undefined) {
                 setnextIDs(response.data.next);
@@ -242,12 +276,13 @@ export const Home = () => {
             }
 
             setDogIDs(response.data.resultIds);
-            console.log(response.data.resultIds);
+            //console.log(response.data.resultIds);
             await getDogInfo(response.data.resultIds);
 
             // handleReload();
 
-            setCurrentPage(currentPage + 1);
+            // setCurrentPage(currentPage + 1);
+            updateContext({currentPage: currentPage + 1});
         
             
         } catch (error) {
@@ -286,10 +321,6 @@ export const Home = () => {
         const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
             try {
               e.preventDefault();
-              // Call API with form values
-            //   console.log('Selected breeds:', selectedBreeds);
-            //   console.log('Age Min:', ageMin);
-            //   console.log('Age Max:', ageMax);
           
               if (selectedBreeds && selectedBreeds.length > 0) {
                 config.params.breeds = selectedBreeds;
@@ -303,6 +334,11 @@ export const Home = () => {
               }
 
               config.params.sort = `${sort.option}:${sort.order}`;
+
+              updateContext({currentURL: ''});
+              updateContext({currentPage: 1});
+
+              console.log(config);
           
               const resultIds = await getDogIDs();
               if (resultIds.length > 0) {
@@ -312,8 +348,9 @@ export const Home = () => {
               setSelectedBreeds([]);
               setAgeMin(0);
               setAgeMax(0);
-              setCurrentPage(1);
+            //   setCurrentPage(1);
               setSort({ option: 'breed', order: 'asc' });
+            //   window.location.reload();
             //   handleReload();
               //console.log("Successfully Applied");
             } catch (error) {
@@ -378,7 +415,7 @@ export const Home = () => {
             <h1 className="text-center font-color" id='landing'>Landing Page</h1>
             <CreateFilters />
             <DogTable dogs={dogs} />
-            <div className="pagination">
+            <div className="pagination"  hidden={totalPages == 0}>
                 <Button variant="primary" onClick={getPrevDogIDs} disabled={!prevIDs || prevIDs.length === 0}>Prev</Button>
                 {currentPage > 1 && (
                     <Button variant="primary" className='pageNumber' disabled={true}>
@@ -393,9 +430,9 @@ export const Home = () => {
                     {currentPage + 1}
                     </Button>
                 )}
-                <Button variant="primary" onClick={getNextDogIDs} disabled={!nextIDs || nextIDs.length === 0}>Next</Button>
+                <Button variant="primary" onClick={getNextDogIDs} disabled={!nextIDs || nextIDs.length === 0 || currentPage === totalPages}>Next</Button>
             </div>
-            <p className="text-center font-color">
+            <p className="text-center font-color" hidden={totalPages == 0}>
                 Showing {currentPage} / {totalPages}
             </p>
         </div>
